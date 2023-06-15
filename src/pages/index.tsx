@@ -1,16 +1,44 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-
+import { format } from "date-fns"
 /**
   Calculates the time difference between the server time and client time.
   @param {Date} serverTime - The server time.
   @param {Date} clientTime - The client time.
   @returns {string} The time difference in the format "{days} days, {hours} hours, {minutes} minutes, {seconds} seconds".
 */
-const calculateTimeDifference = (server: Date, client: Date) => {};
 
+// calculate time differene
+const calculateTimeDifference = (server: Date, client: Date) => {
+  const differenceTimes = Math.abs(server.getTime() - client.getTime())
 
-export default function Home() {
+  const days =  Math.floor(differenceTimes / (1000 * 60 *60 *24));
+  const hours = Math.floor((differenceTimes % (1000 * 60 * 60 *24)) / (1000 * 60 * 60 ));
+  const minutes = Math.floor((differenceTimes % (1000 * 60 * 60 )) / (1000 * 60 ));
+  const seconds = Math.floor((differenceTimes % (1000 * 60 )) / 1000)
+
+  return `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`
+};
+
+// Server side rendering
+export async function getServerSideProps() {
+  const serverTime = new Date();
+  const clientTime = new Date();
+  const formattedServerTime = format(serverTime, "dd-MM-yyyy HH:mm");
+
+  const differenceTime = calculateTimeDifference(serverTime, clientTime);
+
+  return {
+    props: {
+      serverTime: formattedServerTime,
+      differenceTime,
+    },
+  };
+
+}
+
+export default function Home({serverTime, differenceTime}: any) {
+
   const router = useRouter();
   const moveToTaskManager = () => {
     router.push("/tasks");
@@ -29,13 +57,13 @@ export default function Home() {
           {/* Display here the server time (DD-MM-AAAA HH:mm)*/}
           <p>
             Server time:{" "}
-            <span className="serverTime">{/* Replace with the value */}</span>
+            <span className="serverTime"> {serverTime} </span>
           </p>
 
           {/* Display here the time difference between the server side and the client side */}
           <p>
             Time diff:{" "}
-            <span className="serverTime">{/* Replace with the value */}</span>
+            <span className="serverTime">{differenceTime}</span>
           </p>
         </div>
 
